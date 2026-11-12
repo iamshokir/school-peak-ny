@@ -55,9 +55,11 @@ def load() -> dict:
                 N[f"{k}_wmax_wm2"] = f(max(w.values()) / r.area_mft2
                                        * FT2_PER_M2, 0)
                 N[f"{k}_hours"] = f"{int(r.occupied_hours):,}"
-        aw = pk[(pk.calendar == "all_weekdays") & (pk.county == county)
+        aw = pk[(pk.calendar == "no_recess") & (pk.county == county)
                 & (pk.case == "cc")].iloc[0]
         N[f"{k}_allwk_mw"] = f(aw.peak_mw, 0)
+        N[f"{k}_allwk_date"] = pd.Timestamp(aw.peak_time).strftime("%-d %B %Y")
+        N[f"{k}_allwk_t"] = f(aw.t_at_peak_c)
         N[f"{k}_allwk_pct"] = f(100 * (aw.peak_mw / float(
             sch[(sch.county == county) & (sch.case == "cc")].peak_mw.iloc[0])
             - 1), 0)
@@ -93,7 +95,7 @@ def load() -> dict:
                                            td, "cc").p_el.iloc[0]
                        for _, r in rows.iterrows()) / area * 1e6
         mild.append((P(-5) - P(0)) / 5)
-        cold.append((P(td - 5) - P(td + 5)) / 10)
+        cold.append((P(td - 1) - P(td + 1)) / 2)    # local, at T_des
     mild = [m * FT2_PER_M2 for m in mild]
     cold = [c * FT2_PER_M2 for c in cold]
     N["slope_mild_lo"], N["slope_mild_hi"] = f(min(mild), 1), f(max(mild), 1)

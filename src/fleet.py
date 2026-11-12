@@ -64,9 +64,21 @@ def closed_days(idx: pd.DatetimeIndex) -> np.ndarray:
     return np.asarray(d.isin(hol)) | np.asarray(xmas) | recess
 
 
-def occupied_mask(idx: pd.DatetimeIndex, calendar: bool = True) -> np.ndarray:
+def federal_holidays(idx: pd.DatetimeIndex) -> np.ndarray:
+    from pandas.tseries.holiday import USFederalHolidayCalendar
+    d = idx.normalize()
+    hol = USFederalHolidayCalendar().holidays(d.min(), d.max())
+    return np.asarray(d.isin(hol))
+
+
+def occupied_mask(idx: pd.DatetimeIndex, calendar=True) -> np.ndarray:
+    """calendar=True: school calendar (closed_days); "holidays": federal
+    holidays only removed (recess weeks and winter break counted as
+    school days); False: every weekday."""
     m = (np.isin(idx.month, WINTER) & (idx.dayofweek < 5)
          & (idx.hour >= 8) & (idx.hour <= 15))
+    if calendar == "holidays":
+        return m & ~federal_holidays(idx)
     return m & ~closed_days(idx) if calendar else m
 
 

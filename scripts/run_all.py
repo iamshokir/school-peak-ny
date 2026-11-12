@@ -24,7 +24,7 @@ COUNTIES = {  # county: (station ICAO, ISD file stem)
     "New York": ("KNYC", "725053-94728"),
 }
 CASES = ["cc", "cc_full", "neep", "lockout", "cc_hold"]
-CALENDARS = {"school": True, "all_weekdays": False}
+CALENDARS = {"school": True, "no_recess": "holidays", "all_weekdays": False}
 XS = [0.1, 0.2, 0.3, 0.4]
 
 

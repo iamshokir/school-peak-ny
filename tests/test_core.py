@@ -145,3 +145,11 @@ def test_simulate_soc_known_answer():
     bad = fleet.simulate_soc(occ, hours, 0.2, need * 0.5)
     assert ok["shortfall_mwh"] == pytest.approx(0.0, abs=1e-9)
     assert bad["shortfall_mwh"] == pytest.approx(2.0, rel=1e-6)
+
+
+def test_calendar_holidays_only():
+    idx = pd.to_datetime(["2015-02-16 08:00", "2015-02-17 08:00",
+                          "2014-12-29 09:00", "2014-12-25 09:00"])
+    # Presidents' Day closed; rest of recess week and winter break open
+    assert list(fleet.occupied_mask(idx, calendar="holidays")) == [
+        False, True, True, False]

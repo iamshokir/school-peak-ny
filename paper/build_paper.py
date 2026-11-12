@@ -21,22 +21,22 @@ AFFIL = "OFTO Energy Foundation, Brooklyn, NY, USA"
 EMAIL = "shokir@oftoenergy.org"
 
 ABSTRACT = (
-    "Heating electrification is moving New York toward a winter-peaking "
-    "grid, but the share of individual building types is rarely "
-    "resolved. This paper estimates the gross heating demand that the "
-    "school stock of three New York counties would add on cold school "
+    "Heating electrification is projected to move New York toward a "
+    "winter-peaking grid, but the share of individual building types is "
+    "rarely resolved. This paper estimates the gross heating demand that "
+    "the school stock of three New York counties would add on cold school "
     "mornings if all school heating used air-source heat pumps with "
-    "resistance backup. A ComStock heating signature is driven by "
-    f"{N['n_winters']} winters of hourly NOAA temperature under five "
+    "resistance backup. A ComStock-derived heating signature is applied to "
+    f"{N['n_winters']} winters of hourly NOAA temperatures for five "
     f"heat-pump cases. The county peaks are {N['ny_cc_mw']}, "
     f"{N['er_cc_mw']} and {N['sl_cc_mw']} MW "
     f"({N['ny_cc_wm2']}-{N['sl_cc_wm2']} W/m²) in New York, Erie and "
     "St. Lawrence, "
     f"{round((float(N['er_cc_maxmed'])-1)*100)}-"
     f"{round((float(N['sl_cc_maxmed'])-1)*100)}% above a median winter; "
-    "they are not coincident with the system peak. Sizing and compressor "
-    f"lockout move the Erie peak between {N['er_cc_full_mw']} and "
-    f"{N['er_lockout_mw']} MW, and a morning warm-up allowance of 30% adds "
+    "they are gross and non-coincident. Sizing and compressor lockout move "
+    f"the Erie peak between {N['er_cc_full_mw']} and {N['er_lockout_mw']} "
+    "MW, and an assumed 30% morning warm-up allowance adds "
     f"{N['sl_wu30_pct']}-{N['ny_wu30_pct']}%. A battery that caps 10% of "
     f"the peak needs {N['sl_cc_x10_h'][:3]}-{N['er_cc_x10_h'][:3]} h and "
     f"discharges on at most {N['er_cc_x10_days']} school days in "
@@ -44,6 +44,74 @@ ABSTRACT = (
 
 INDEX = ("Building electrification, energy storage, heat pumps, peak "
          "demand, schools")
+
+REFD = {
+    "wu": "Y. Wu, M. Waite, T. Conlon, and V. Modi, “The role of "
+    "electrification induced peak loads and gas infrastructure constraints "
+    "on decarbonization pathways in New York State,” Energy Strategy "
+    "Rev., vol. 44, Art. no. 100985, 2022, doi: 10.1016/j.esr.2022.100985.",
+    "waite": "M. Waite and V. Modi, “Electricity load implications of space "
+    "heating decarbonization pathways,” Joule, vol. 4, no. 2, "
+    "pp. 376-394, 2020, doi: 10.1016/j.joule.2019.11.011.",
+    "white": "P. R. White, J. D. Rhodes, E. J. H. Wilson, and M. E. Webber, "
+    "“Quantifying the impact of residential space heating "
+    "electrification on the Texas electric grid,” Appl. Energy, "
+    "vol. 298, Art. no. 117113, 2021, doi: 10.1016/j.apenergy.2021.117113.",
+    "p4": "S. Ismoilov, “Can an electrified school stay open in a blizzard? "
+    "Solar-plus-storage sizing for winter shelter operation under "
+    "cold-battery and snow constraints in New York State,” unpublished.",
+    "comstock": "A. Parker et al., “ComStock reference documentation: "
+    "Version 1,” Nat. Renewable Energy Lab., Golden, CO, USA, "
+    "NREL/TP-5500-83819, 2023, doi: 10.2172/1967948; ComStock 2025 "
+    "Release 3 (AMY2018) dataset.",
+    "isd": "NOAA National Centers for Environmental Information, "
+    "“Integrated Surface Database (ISD),” [Online]. Available: "
+    "https://www.ncei.noaa.gov/pub/data/noaa/ (accessed Nov. 11, 2026).",
+    "resstock": "Nat. Renewable Energy Lab., “ResStock documentation: Heat "
+    "pump upgrades tutorial.” [Online]. Available: "
+    "https://resstock.readthedocs.io (accessed Oct. 20, 2026).",
+    "neep": "Northeast Energy Efficiency Partnerships, “Cold climate air "
+    "source heat pump specification, version 4.0,” 2022 (effective "
+    "Jan. 1, 2023).",
+    "kim": "J. Kim and C. CaraDonna, “ComStock measure scenario "
+    "documentation: Standard performance heat pump RTU with new "
+    "windows,” Nat. Renewable Energy Lab., Golden, CO, USA, "
+    "NREL/TP-5500-95006, Aug. 2025.",
+    "ti": "U.S. Army, “Mechanical design: Heating, ventilating, and air "
+    "conditioning,” Technical Instructions TI 810-10, Feb. 1999.",
+    "atb": "Nat. Renewable Energy Lab., “2024 Annual Technology Baseline: "
+    "Commercial battery storage.” [Online]. Available: "
+    "https://atb.nrel.gov (accessed Oct. 21, 2026).",
+    "p5": "S. Ismoilov, “Charge before the storm: Forecast-informed battery "
+    "readiness for school winter shelters in New York State,” "
+    "unpublished.",
+    "ornl": "J. A. Shonder, M. A. Martin, P. J. Hughes, and J. Thornton, "
+    "“Geothermal heat pumps in K-12 schools: A case study of the Lincoln, "
+    "Nebraska, schools,” Oak Ridge Nat. Lab., Oak Ridge, TN, USA, "
+    "ORNL/TM-2000/80, 2000.",
+}
+REFS = []
+
+
+def _number_refs(B):
+    """Replace [@key] by IEEE numbers in order of first citation."""
+    import re
+    order = []
+    pat = re.compile(r"\[@([a-z0-9]+)\]")
+    for b in B:
+        for part in b[1:]:
+            if isinstance(part, str):
+                for k in pat.findall(part):
+                    if k not in order:
+                        order.append(k)
+    assert set(order) == set(REFD), set(REFD) ^ set(order)
+    num = {k: i + 1 for i, k in enumerate(order)}
+    REFS[:] = [REFD[k] for k in order]
+    out = []
+    for b in B:
+        out.append(tuple(pat.sub(lambda m: f"[{num[m.group(1)]}]", x)
+                         if isinstance(x, str) else x for x in b))
+    return out
 
 
 def body() -> list:
@@ -57,13 +125,14 @@ def body() -> list:
       "electrification would move it to winter: a statewide study finds the "
       "winter peak overtakes the summer peak at about 25% building and "
       "vehicle electrification and reaches 83 GW at full electrification, "
-      "against 34 GW today, driven by heating in extreme cold [1]. Similar "
-      "winter-peak growth has been reported for space heating at national "
-      "scale [2] and for residential heating in Texas [3]. These studies "
-      "treat buildings as one or two sectors. Schools are a distinct "
-      "segment: a large, publicly owned stock, a narrow occupied window "
-      "that starts in the coldest hours of the morning, and a possible role "
-      "as shelters during winter outages [10]. Their contribution to "
+      "against 34 GW today, driven by heating in extreme cold [@wu]. "
+      "Similar winter-peak growth has been reported for space heating at "
+      "national scale [@waite] and for residential heating in Texas "
+      "[@white]. These studies treat buildings as one or two sectors. "
+      "Schools are a distinct segment: a large, publicly owned stock, a "
+      "narrow occupied window that starts in the coldest hours of the "
+      "morning, and a possible role as shelters during winter outages "
+      "[@p4]. To the author's knowledge, their contribution to "
       "cold-weather demand, and how it depends on the heat pump chosen and "
       "on the weather year used for planning, has not been quantified.")
     p("This paper asks three questions for the school stock of three New "
@@ -75,31 +144,31 @@ def body() -> list:
       "used for planning and on model uncertainty? (iii) How much of it can "
       "a short-duration battery remove? The calculation reuses the heating "
       "signature and heat-pump curve of the author's single-school shelter "
-      "sizing study [10], which is unpublished; that study sizes storage "
+      "sizing study [@p4], which is unpublished; that study sizes storage "
       "for one school through a 72-h outage and does not address grid "
       "demand. The fleet-level question, the multi-year weather record, "
-      "the sizing, lockout and uncertainty cases and the peak-capping "
-      "analysis are new here.")
+      "the sizing, lockout and uncertainty cases, and the peak-capping "
+      "analysis are new.")
 
     h1("Data and Method")
     h2("Building stock and heating signature")
     p("The school stock is taken from ComStock 2025 Release 3 county "
-      "aggregates for primary and secondary schools [4]: "
+      "aggregates for primary and secondary schools [@comstock]: "
       f"{N['ny_area_mm2']}, {N['er_area_mm2']} and {N['sl_area_mm2']} "
       "million m² of represented floor area in New York, Erie and "
       "St. Lawrence counties. Thermal heating demand per unit area, from "
-      "the ComStock ideal-load upgrade, was fitted in [10] against airport "
+      "the ComStock ideal-load upgrade, was fitted in [@p4] against airport "
       "station temperature in occupied hours (weekdays 08:00-15:59, "
       "November-March) with a one-slope change-point model, giving "
       f"balance temperatures of {N['tbal_lo']}-{N['tbal_hi']} °C and R² of "
-      f"{N['r2_lo']}-{N['r2_hi']}. The fleet thermal demand in hour t is")
-    eq("Q_{t} = Σ_{b} A_{b} s_{b} max(0, T_{bal,b} - T_{t})", 1)
-    p("where A_{b} is the floor area, s_{b} the slope and T_{bal,b} the "
-      "balance temperature of school type b, and T_{t} the outdoor "
-      "temperature.")
+      f"{N['r2_lo']}-{N['r2_hi']}. The thermal demand of school type b in "
+      "hour t is")
+    eq("Q_{b,t} = A_{b} s_{b} max(0, T_{bal,b} - T_{t})", 1)
+    p("where A_{b} is the floor area, s_{b} the slope, T_{bal,b} the "
+      "balance temperature and T_{t} the outdoor temperature.")
     h2("Weather")
     p("Hourly air temperature for winters 2014/15 to 2024/25 (November to "
-      "March) comes from NOAA Integrated Surface Database records [8] at "
+      "March) comes from NOAA Integrated Surface Database records [@isd] at "
       "Central Park (KNYC), Buffalo Niagara (KBUF) and Massena (KMSS). "
       "Reports flagged suspect or erroneous are removed, reports within an "
       "hour are averaged and gaps of up to 3 h are interpolated; "
@@ -107,38 +176,40 @@ def body() -> list:
       "hours remain missing and are dropped. Each series was compared with "
       "a neighboring station (LaGuardia, Niagara Falls, Ogdensburg): "
       f"hourly correlation {N['nb_corr_min']}-{N['nb_corr_max']} and 1st "
-      f"percentiles within {N['nb_p1_maxdiff']} °C. The Central Park "
-      f"minimum, {N['ny_tmin']} °C on 14 February 2016, matches the -1 °F "
-      "reported that morning. Occupied hours exclude U.S. federal "
-      "holidays, 24 December-1 January and the week of Presidents' Day, an "
-      "approximation of New York school calendars (for example, New York "
-      "City schools were closed 16-20 February 2015); a run with every "
-      "weekday occupied is a sensitivity. This leaves "
-      f"{N['ny_hours']}-{N['er_hours']} occupied hours per county. The "
-      "design temperature T_{des} is the 1st percentile of winter hourly "
-      f"temperature: {N['ny_tdes']}, {N['er_tdes']} and {N['sl_tdes']} °C.")
+      f"percentiles within {N['nb_p1_maxdiff']} °C. Occupied hours exclude "
+      "U.S. federal holidays, 24 December-1 January and the week of "
+      "Presidents' Day, an approximation of New York school calendars (for "
+      "example, New York City schools were closed 16-20 February 2015). "
+      f"This leaves {N['ny_hours']}-{N['er_hours']} occupied hours per "
+      "county. The design temperature T_{des} is the 1st percentile of all "
+      f"winter hours: {N['ny_tdes']}, {N['er_tdes']} and {N['sl_tdes']} °C; "
+      "it is not the ASHRAE design value.")
     h2("Heat-pump cases")
     p("All school heating is assumed to move to air-source heat pumps with "
       "electric-resistance backup. The result is the gross added heating "
-      "demand: it is not netted against existing electric heating, and the "
-      "county peaks are not coincident with each other or with the system "
-      "peak. The rated (8.3 °C) thermal capacity of the heat pumps is")
-    eq("H = Σ_{b} A_{b} s_{b} (T_{bal,b} - T_{des}) / k(T_{des})^{δ}", 2)
-    p("with k(T) the capacity fraction at temperature T and δ = 0 or 1 "
-      "(below). With heat-pump output G_{t} = min(Q_{t}, k(T_{t})H), the "
-      "electric demand is")
-    eq("P_{t} = G_{t}/COP(T_{t}) + (Q_{t} - G_{t})", 3)
+      "demand: it is not netted against existing electric heating, and its "
+      "coincidence across counties and with the system peak is not "
+      "assessed. The nominal thermal capacity (capacity fraction k = 1) of "
+      "the heat pumps of school type b is")
+    eq("H_{b} = A_{b} s_{b} (T_{bal,b} - T_{des}) / k(T_{des})^{δ}", 2)
+    p("with k(T) the capacity fraction at temperature T and δ = 0 or 1. "
+      "With heat-pump output G_{b,t} = min(Q_{b,t}, k(T_{t})H_{b}), the "
+      "fleet electric demand is")
+    eq("P_{t} = Σ_{b} [G_{b,t}/COP(T_{t}) + (Q_{b,t} - G_{b,t})]", 3)
     p("Five cases are compared. CC (main): a cold-climate curve with COP "
       "3.37, 2.33, 1.98 and 1.49 at 8.3, -8.3, -15 and -26.1 °C and "
-      "capacity 1.03, 0.77, 0.69 and 0.51 of rated [6], δ = 0 (rated "
-      "capacity equal to the design load, the rule of [10]) and resistance "
-      "only below the coldest rated point. CC-full: as CC with δ = 1, so "
-      "the derated capacity meets the design load. NEEP: CC with COP scaled "
-      "to 1.75 at -15 °C, the qualifying floor of the NEEP cold-climate "
-      "specification [7]. Lockout: CC with the compressor off below "
+      "capacity fractions 1.03, 0.77, 0.69 and 0.51 [@resstock], with "
+      "δ = 0 (nominal capacity equal to the design load, the rule of "
+      "[@p4]); resistance covers any capacity shortfall, and the "
+      "compressor is off below the coldest rated point. CC-full: as CC "
+      "with δ = 1, so the derated capacity meets the design load; CC and "
+      "CC-full bracket common sizing practice. NEEP: CC with COP scaled to "
+      "1.75 at -15 °C, the qualifying floor of the NEEP cold-climate "
+      "specification [@neep]. Lockout: CC with the compressor off below "
       "-17.8 °C (0 °F), the behavior of the standard-performance heat-pump "
-      "rooftop unit modeled by ComStock [5]. CC-hold: CC with the -26.1 °C "
-      "point held at colder temperatures, an optimistic bound.")
+      "rooftop unit modeled by ComStock [@kim]. CC-hold: CC with COP and "
+      "capacity held at their -26.1 °C values at colder temperatures, an "
+      "optimistic bound.")
     h2("Uncertainty and morning warm-up")
     p("With the heat pumps sized on the base signature, the true thermal "
       "load is varied by ±10% and ±20%, the balance temperature by ±2 K, "
@@ -146,32 +217,36 @@ def body() -> list:
       "signature does not resolve the morning recovery after a night "
       "setback, so three stated assumptions add 15%, 30% and 50% to the "
       "08:00 thermal demand; 30% is the recovery allowance in U.S. Army "
-      "design criteria [13]. These are scenarios, not measurements.")
+      "design criteria [@ti]. These are scenarios, not measurements. A "
+      "calendar sensitivity counts recess weeks and winter break as school "
+      "days (federal holidays still excluded).")
     h2("Peak capping with storage")
     p("Let P_{max} be the highest occupied-hour demand over all winters. A "
       "battery of power xP_{max} holds demand at (1 - x)P_{max} if its "
       "usable energy covers the worst school day:")
     eq("E = max_{d} Σ_{t∈d} max(0, P_{t} - (1 - x)P_{max})", 4)
     p("Nameplate energy is E/(η_{d}u), with discharge efficiency "
-      "η_{d} = 0.85^{0.5} from an 85% round trip [9] and usable fraction "
-      "u = 0.9. Dispatch assumes the day's demand is known. An hourly "
-      "state-of-charge simulation over every winter hour, with discharge "
-      "limited to the power rating and recharge only outside school hours, "
-      "checks the sizing across consecutive cold days.")
+      "η_{d} = 0.85^{0.5} from an 85% round trip [@atb] and usable fraction "
+      "u = 0.9; duration is nameplate energy over power. Dispatch assumes "
+      "the day's demand is known. An hourly state-of-charge simulation over "
+      "every winter hour, with discharge limited to the power rating and "
+      "recharge only outside school hours, checks the sizing across "
+      "consecutive cold days.")
 
     h1("Results")
     h2("Why the peak is steep")
     p("Fig. 1 shows the added demand per square meter of floor area as a "
       "function of outdoor temperature. Between 0 and -5 °C the heat pumps "
       "carry the load at a COP near 2.5 or above and each degree adds "
-      f"{N['slope_mild_lo']}-{N['slope_mild_hi']} W/m². Around the design "
+      f"{N['slope_mild_lo']}-{N['slope_mild_hi']} W/m². Near the design "
       "temperature the derated capacity no longer covers the load (in the "
-      "CC case already somewhat above it, since rated capacity equals the "
-      "design load) and resistance takes the rest at COP 1, so each degree "
-      f"adds {N['slope_cold_lo']}-{N['slope_cold_hi']} W/m², "
-      f"{N['slope_ratio_lo']}-{N['slope_ratio_hi']} times as much. The "
-      "lockout case jumps at -17.8 °C, and every case except CC-hold "
-      "converges on resistance below -26.1 °C.")
+      "CC case this begins several kelvins above T_{des}, because nominal "
+      "capacity equals the design load) and resistance takes the rest at "
+      f"COP 1, so each degree adds {N['slope_cold_lo']}-"
+      f"{N['slope_cold_hi']} W/m², {N['slope_ratio_lo']}-"
+      f"{N['slope_ratio_hi']} times as much. The lockout case jumps at "
+      "-17.8 °C, and every case except CC-hold steps up to pure "
+      "resistance below -26.1 °C.")
     B.append(("fig", "Fig1_demand_vs_temperature.png",
               "Added electric demand of the county school stock per square "
               "meter of floor area versus outdoor temperature for the five "
@@ -188,8 +263,8 @@ def body() -> list:
       "the mean occupied-hour demand. Resistance supplies "
       f"{N['er_cc_res']}-{N['ny_cc_res']}% of the peak in New York and "
       "Erie and all of it in St. Lawrence.")
-    p("Heat-pump choice matters most where the coldest school mornings sit "
-      "between -17.8 and -26 °C. In Erie, sizing for the design "
+    p("Heat-pump choice matters most where the coldest school mornings "
+      "fall between -17.8 and -26.1 °C. In Erie, sizing for the design "
       f"temperature (CC-full) lowers the peak to {N['er_cc_full_mw']} MW, "
       f"the NEEP floor raises it to {N['er_neep_mw']} MW and the lockout to "
       f"{N['er_lockout_mw']} MW, "
@@ -199,9 +274,10 @@ def body() -> list:
       f"({N['ny_cc_full_mw']}-{N['ny_neep_mw']} MW). In St. Lawrence the "
       "peak hour is below the coldest rated point, so all four rated cases "
       f"give {N['sl_cc_mw']} MW; CC-hold lowers it to {N['sl_cc_hold_mw']} "
-      "MW. With every weekday occupied, the Erie peak rises to "
-      f"{N['er_allwk_mw']} MW (+{N['er_allwk_pct']}%), because the coldest "
-      "Erie school morning fell in the Presidents' Day week of 2015.")
+      "MW. If recess weeks and winter break were school days, the Erie "
+      f"peak would rise to {N['er_allwk_mw']} MW (+{N['er_allwk_pct']}%, "
+      f"{N['er_allwk_date']}, {N['er_allwk_t']} °C); the other two counties "
+      "are unchanged.")
     B.append(("table1", None, "Gross added peak of the county school stock",
               "Peaks in MW (school calendar). Max/median: 11-winter peak "
               "over median winter peak, CC case."))
@@ -217,127 +293,91 @@ def body() -> list:
       "the school peak by a quarter to more than a third.")
     B.append(("fig", "Fig2_winter_peaks.png",
               "Peak of each winter, CC case (markers), with the range from "
-              "CC-full to Lockout (bars); school calendar."))
+              "CC-full to Lockout (bars; NEEP not shown); school calendar."))
     h2("Short-duration storage")
-    p("Table II gives the battery needed to cap the CC peak. The first 10% "
-      f"needs {N['ny_cc_x10_mw']}, {N['er_cc_x10_mw']} and "
-      f"{N['sl_cc_x10_mw']} MW with {N['ny_cc_x10_h']}, {N['er_cc_x10_h']} "
-      f"and {N['sl_cc_x10_h']} h, or "
-      f"{min(int(N[k + '_cc_x10_whm2']) for k in ('ny', 'er', 'sl'))}-"
+    p("Table II gives the battery needed to cap the CC peak. Capping the "
+      f"top 10% requires {N['ny_cc_x10_mw']}, {N['er_cc_x10_mw']} and "
+      f"{N['sl_cc_x10_mw']} MW of power with {N['ny_cc_x10_h']}, "
+      f"{N['er_cc_x10_h']} and {N['sl_cc_x10_h']} h of nameplate duration, "
+      f"or {min(int(N[k + '_cc_x10_whm2']) for k in ('ny', 'er', 'sl'))}-"
       f"{max(int(N[k + '_cc_x10_whm2']) for k in ('ny', 'er', 'sl'))} Wh "
       f"per m² of floor area, and discharges on {N['ny_cc_x10_days']}-"
       f"{N['er_cc_x10_days']} school days in {N['n_winters']} winters. "
-      f"Deeper caps depend on the daily profile: in Erie a 20% cap needs "
+      "Deeper caps depend on the daily profile: in Erie a 20% cap needs "
       f"{N['er_cc_x20_h']} h ({N['er_cc_x20_mwh']} MWh) with the flat "
       "occupied-hour profile, because Buffalo cold outbreaks hold demand "
-      "near the peak all day, but with any of the warm-up scenarios the "
+      "near the peak all day, but under any of the warm-up scenarios the "
       f"peak becomes an 08:00 spike and {N['wu_x20h_max']} h suffices. The "
       "hourly state-of-charge simulation confirms the daily sizing within "
-      f"{N['soc_maxdiff_pct']}%, and does so even when recharge is limited "
-      "to a quarter of the power rating: consecutive cold days do not bind.")
+      f"{N['soc_maxdiff_pct']}%, also when recharge is limited to a quarter "
+      "of the power rating, so consecutive cold days do not constrain the "
+      "sizing.")
     B.append(("table2", None, "Battery to cap the CC peak by a fraction x",
-              "Energy is nameplate; days used: school days with discharge "
-              "in 11 winters (school calendar, no warm-up)."))
+              "Energy: nameplate; duration: nameplate energy over power "
+              "(1.21 h is one hour of discharge); days used: school days "
+              "with discharge in 11 winters; no warm-up."))
     h2("Robustness")
     p("Table III gives the one-at-a-time changes. A load error of ±20% "
-      f"moves the peak by {N['sl_load_factor_1.2']}-{N['ny_load_factor_1.2']}%, "
-      "more than proportionally where the heat pumps were sized on the "
-      "base load and the error falls on resistance; the balance "
-      f"temperature (±2 K) moves it by up to {N['ny_dtbal_2.0']}% and COP "
-      "or capacity (±10%) by up to 5%. The morning warm-up dominates: a "
-      f"30% allowance raises the peaks to {N['ny_wu30_mw']}, "
-      f"{N['er_wu30_mw']} and {N['sl_wu30_mw']} MW. The weather-year "
-      f"ratio survives every warm-up scenario ({N['wu_maxmed_lo']}-"
-      f"{N['wu_maxmed_hi']}).")
+      f"moves the peak by {N['sl_load_factor_1.2']}-"
+      f"{N['ny_load_factor_1.2']}%, more than proportionally where the "
+      "heat pumps were sized on the base load and the error falls on "
+      f"resistance; the balance temperature (±2 K) moves it by up to "
+      f"{N['ny_dtbal_2.0']}%, and COP or capacity (±10%) by up to 5%. The "
+      "assumed morning warm-up has the largest effect: a 30% allowance "
+      f"raises the peaks to {N['ny_wu30_mw']}, {N['er_wu30_mw']} and "
+      f"{N['sl_wu30_mw']} MW. The max/median ratio remains "
+      f"{N['wu_maxmed_lo']}-{N['wu_maxmed_hi']} under every warm-up "
+      "scenario.")
     B.append(("table3", None, "Change in CC peak, one input at a time (%)",
-              "Heat pumps sized on the base signature. Warm-up: assumed "
-              "extra 08:00 thermal demand; 30% from [13]."))
+              "Values for a decrease/increase of the input. Heat pumps "
+              "sized on the base signature. Warm-up: assumed extra 08:00 "
+              "thermal demand; 30% from [@ti]."))
 
     h1("Discussion and Limitations")
-    p("For grid planners three inputs change the school peak by tens of "
-      "percent: the weather years used, the cold-weather rating and "
-      "lockout setting written into heat-pump procurement, and whether "
-      "units are sized to derated or rated capacity; the morning start-up "
-      "strategy adds a fourth. These are procurement and operating choices "
-      "made school by school, which makes them a lever that utilities and "
-      "school districts can set together. Short-duration batteries can "
+    p("For grid planners the results identify inputs that change the "
+      "school peak by tens of percent: the weather years used (all "
+      f"counties), the lockout setting in Erie (+{round((float(N['er_lockout_mw'])/float(N['er_cc_mw'])-1)*100)}%), sizing to derated "
+      f"rather than nominal capacity ({round((float(N['ny_cc_full_mw'])/float(N['ny_cc_mw'])-1)*100)}% and "
+      f"{round((float(N['er_cc_full_mw'])/float(N['er_cc_mw'])-1)*100)}% in New York and Erie) "
+      "and, under the stated assumptions, the morning start-up strategy. "
+      "Because these choices are made school by school, utilities and "
+      "school districts can set them jointly. Short-duration batteries can "
       "remove the top tenth of the peak, which occurs on a few mornings "
       "per decade; how much more they remove depends on the intraday "
       "profile, which needs metered data. A school battery held as a "
-      "shelter reserve [10] could provide this only if the discharge does "
+      "shelter reserve [@p4] could provide this only if the discharge does "
       "not compromise readiness for an outage that may follow the same "
-      "cold spell; the forecast approach of [11] could set when a "
+      "cold spell; the forecast approach of [@p5] could set when a "
       "peak-capping discharge is allowed.")
     p("The estimates have limits. ComStock is simulated stock, not metered "
       "schools, and no independent measurement of air-source heat-pump "
       "school peaks was found for validation. The nearest published "
-      "figure, a ground-source heat-pump school in Lincoln, Nebraska, "
-      f"peaked at about {N['ornl_wm2']} W/m² for all end uses [12]; "
-      "ground-source units avoid resistance backup and that building was "
-      "new, so it indicates what efficient design can reach rather than "
-      "validating the existing-stock estimate. The warm-up is assumed, "
-      "overnight heating during recharge is not modeled, the COP curve is "
-      "generic, calendars are approximated and dispatch assumes perfect "
-      "foresight. Translating the gross county peaks into a net system "
-      "impact requires coincidence with zonal load, which is outside this "
-      "paper.")
+      "figure is a ground-source heat-pump school in Lincoln, Nebraska, "
+      "with a measured 1996 peak of 255 kW over about 69,000 ft² [@ornl], "
+      f"or about {N['ornl_wm2']} W/m² for all end uses; ground-source units "
+      "avoid resistance backup and that building was new, so it indicates "
+      "what efficient design can reach rather than validating the "
+      "existing-stock estimate. The warm-up is assumed, overnight heating "
+      "during recharge is not modeled, the COP curve is generic, calendars "
+      "are approximated and dispatch assumes perfect foresight. Turning "
+      "the gross county peaks into a net system impact requires "
+      "coincidence with zonal load, which is outside this paper.")
 
     h1("Conclusion")
     p("Converting the heating of a county's school stock to air-source "
-      "heat pumps adds a sharp gross cold-morning demand of about "
-      f"{N['ny_cc_wm2']}-{N['sl_cc_wm2']} W/m² ({N['er_cc_mw']} MW for "
-      "Erie), set by the coldest school morning of the decade rather than "
-      "a typical winter and shifted by up to a third by heat-pump lockout "
-      "and sizing, and by a similar amount by the morning warm-up. A "
-      "battery can remove the top 10% with under 2 h of storage. "
-      "Specifying cold-climate heat pumps sized for the design "
-      "temperature, managing morning start-up and planning on multi-year "
-      "weather are low-cost first steps; metered school data are the next.")
-    return B
+      "heat pumps adds a sharp gross cold-morning peak of about "
+      f"{N['ny_cc_wm2']}-{N['sl_cc_wm2']} W/m² in the main case "
+      f"({N['er_cc_mw']} MW for Erie). The peak is set by the coldest "
+      "school morning of the decade rather than a typical winter. In Erie "
+      "it moves by up to a third with heat-pump lockout and sizing, and in "
+      f"all three counties it rises by {N['sl_wu30_pct']}-{N['ny_wu30_pct']}% "
+      "under an assumed 30% warm-up allowance. A battery can remove the top 10% with under 2 h "
+      "of storage in the main case. Specifying cold-climate heat pumps "
+      "sized for the design temperature, managing morning start-up and "
+      "planning on multi-year weather are steps this analysis supports; "
+      "metered school data are the next need.")
+    return _number_refs(B)
 
-
-REFS = [
-    "Y. Wu, M. Waite, T. Conlon, and V. Modi, “The role of "
-    "electrification induced peak loads and gas infrastructure constraints "
-    "on decarbonization pathways in New York State,” Energy Strategy "
-    "Rev., vol. 44, Art. no. 100985, 2022, doi: 10.1016/j.esr.2022.100985.",
-    "M. Waite and V. Modi, “Electricity load implications of space "
-    "heating decarbonization pathways,” Joule, vol. 4, no. 2, "
-    "pp. 376-394, 2020, doi: 10.1016/j.joule.2019.11.011.",
-    "P. R. White, J. D. Rhodes, E. J. H. Wilson, and M. E. Webber, "
-    "“Quantifying the impact of residential space heating "
-    "electrification on the Texas electric grid,” Appl. Energy, "
-    "vol. 298, Art. no. 117113, 2021, doi: 10.1016/j.apenergy.2021.117113.",
-    "A. Parker et al., “ComStock reference documentation: Version 1,” "
-    "Nat. Renewable Energy Lab., Golden, CO, USA, NREL/TP-5500-83819, 2023, "
-    "doi: 10.2172/1967948; ComStock 2025 Release 3 (AMY2018) dataset.",
-    "J. Kim and C. CaraDonna, “ComStock measure scenario documentation: "
-    "Standard performance heat pump RTU with new windows,” Nat. "
-    "Renewable Energy Lab., Golden, CO, USA, NREL/TP-5500-95006, Aug. 2025.",
-    "Nat. Renewable Energy Lab., “ResStock documentation: Heat pump "
-    "upgrades tutorial.” [Online]. Available: "
-    "https://resstock.readthedocs.io (accessed Oct. 20, 2026).",
-    "Northeast Energy Efficiency Partnerships, “Cold climate air source "
-    "heat pump specification, version 4.0,” 2022 (effective Jan. 1, 2023).",
-    "NOAA National Centers for Environmental Information, “Integrated "
-    "Surface Database (ISD),” [Online]. Available: "
-    "https://www.ncei.noaa.gov/pub/data/noaa/ (accessed Nov. 11, 2026).",
-    "Nat. Renewable Energy Lab., “2024 Annual Technology Baseline: "
-    "Commercial battery storage.” [Online]. Available: "
-    "https://atb.nrel.gov (accessed Oct. 21, 2026).",
-    "S. Ismoilov, “Can an electrified school stay open in a blizzard? "
-    "Solar-plus-storage sizing for winter shelter operation under "
-    "cold-battery and snow constraints in New York State,” unpublished.",
-    "S. Ismoilov, “Charge before the storm: Forecast-informed battery "
-    "readiness for school winter shelters in New York State,” "
-    "unpublished.",
-    "J. A. Shonder, M. A. Martin, P. J. Hughes, and J. Thornton, "
-    "“Geothermal heat pumps in K-12 schools: A case study of the Lincoln, "
-    "Nebraska, schools,” Oak Ridge Nat. Lab., Oak Ridge, TN, USA, "
-    "ORNL/TM-2000/80, 2000.",
-    "U.S. Army, “Mechanical design: Heating, ventilating, and air "
-    "conditioning,” Technical Instructions TI 810-10, Feb. 1999.",
-]
 
 DATA_NOTE = (
     "Data availability: inputs are public (ComStock 2025 R3, NOAA ISD). "
