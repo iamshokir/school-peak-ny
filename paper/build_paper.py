@@ -384,8 +384,11 @@ DATA_NOTE = (
     "The analysis code, unit tests and result tables are available at "
     "https://github.com/iamshokir/school-peak-ny.")
 
+AI_REF = ("Anthropic, “Claude (Opus 5.5),” large language model, accessed "
+          "Nov. 11-12, 2026. [Online]. Available: https://claude.ai")
+
 ACK = (
-    "Generative AI disclosure: Claude (Anthropic) was used to write and test "
+    "Generative AI disclosure: Claude (Anthropic) [{ai}] was used to write and test "
     "the analysis code, run the calculations, draw the figures and draft "
     "the text of all sections under the author's direction. The author "
     "chose the research question and cases, reviewed the code, results and "
@@ -474,7 +477,10 @@ def to_markdown(blocks) -> str:
 
 
 def main():
+    global ACK
     blocks = body()
+    REFS.append(AI_REF)
+    ACK = ACK.replace("{ai}", str(len(REFS)))
     md = to_markdown(blocks)
     (ROOT / "paper" / "draft.md").write_text(md, encoding="utf-8")
     import make_docx_pes
