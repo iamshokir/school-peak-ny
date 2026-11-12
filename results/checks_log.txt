@@ -1,0 +1,75 @@
+      county    case  boost8  peak_mw  change_pct  max_over_median  x10_duration_h  x10_days  x20_duration_h
+    New York      cc    0.00   322.27        0.00             1.51            1.52         1            2.33
+    New York      cc    0.15   388.62       20.59             1.45            1.21         2            1.21
+    New York      cc    0.30   454.97       41.18             1.41            1.21         2            1.21
+    New York      cc    0.50   543.43       68.63             1.38            1.21         2            1.21
+    New York cc_full    0.00   281.43        0.00             1.74            1.30         1            2.00
+    New York cc_full    0.15   347.78       23.58             1.61            1.21         1            1.21
+    New York cc_full    0.30   414.13       47.15             1.53            1.21         1            1.21
+    New York cc_full    0.50   502.60       78.58             1.46            1.21         2            1.21
+        Erie      cc    0.00   391.62        0.00             1.31            1.93         7            5.23
+        Erie      cc    0.15   469.70       19.94             1.33            1.21         6            1.21
+        Erie      cc    0.30   547.78       39.88             1.30            1.21         6            1.21
+        Erie      cc    0.50   651.90       66.46             1.28            1.21         6            1.21
+        Erie cc_full    0.00   329.98        0.00             1.43            1.21         5            3.82
+        Erie cc_full    0.15   408.07       23.66             1.49            1.21         6            1.21
+        Erie cc_full    0.30   486.15       47.33             1.42            1.21         6            1.21
+        Erie cc_full    0.50   590.26       78.88             1.37            1.21         6            1.21
+St. Lawrence      cc    0.00    49.21        0.00             1.59            1.21         2            1.21
+St. Lawrence      cc    0.15    56.59       15.00             1.53            1.21         2            1.21
+St. Lawrence      cc    0.30    63.97       30.00             1.48            1.21         2            1.21
+St. Lawrence      cc    0.50    73.81       50.00             1.44            1.21         2            1.21
+St. Lawrence cc_full    0.00    49.21        0.00             2.01            1.21         2            1.21
+St. Lawrence cc_full    0.15    56.59       15.00             1.98            1.21         2            1.21
+St. Lawrence cc_full    0.30    63.97       30.00             1.84            1.21         2            1.21
+St. Lawrence cc_full    0.50    73.81       50.00             1.72            1.21         2            1.21
+      county       param  value  peak_mw  change_pct
+    New York        base    NaN   322.27        0.00
+    New York load_factor    0.8   233.80      -27.45
+    New York load_factor    0.9   278.03      -13.73
+    New York load_factor    1.1   366.50       13.73
+    New York load_factor    1.2   410.73       27.45
+    New York       dtbal   -2.0   293.82       -8.83
+    New York       dtbal   -1.0   308.04       -4.41
+    New York       dtbal    1.0   336.49        4.41
+    New York       dtbal    2.0   350.71        8.83
+    New York  cop_factor    0.9   336.26        4.34
+    New York  cop_factor    1.1   310.82       -3.55
+    New York  cap_factor    0.9   334.27        3.73
+    New York  cap_factor    1.1   310.26       -3.73
+        Erie        base    NaN   391.62        0.00
+        Erie load_factor    0.8   287.51      -26.59
+        Erie load_factor    0.9   339.56      -13.29
+        Erie load_factor    1.1   443.67       13.29
+        Erie load_factor    1.2   495.73       26.59
+        Erie       dtbal   -2.0   361.57       -7.67
+        Erie       dtbal   -1.0   376.59       -3.84
+        Erie       dtbal    1.0   406.64        3.84
+        Erie       dtbal    2.0   421.66        7.67
+        Erie  cop_factor    0.9   409.60        4.59
+        Erie  cop_factor    1.1   376.91       -3.76
+        Erie  cap_factor    0.9   404.51        3.29
+        Erie  cap_factor    1.1   378.72       -3.29
+St. Lawrence        base    NaN    49.21        0.00
+St. Lawrence load_factor    0.8    39.37      -20.00
+St. Lawrence load_factor    0.9    44.29      -10.00
+St. Lawrence load_factor    1.1    54.13       10.00
+St. Lawrence load_factor    1.2    59.05       20.00
+St. Lawrence       dtbal   -2.0    47.19       -4.09
+St. Lawrence       dtbal   -1.0    48.20       -2.05
+St. Lawrence       dtbal    1.0    50.22        2.05
+St. Lawrence       dtbal    2.0    51.22        4.09
+St. Lawrence  cop_factor    0.9    49.21        0.00
+St. Lawrence  cop_factor    1.1    49.21        0.00
+St. Lawrence  cap_factor    0.9    49.21        0.00
+St. Lawrence  cap_factor    1.1    49.21        0.00
+      county   x  power_mw  daily_method_mwh  hourly_soc_mwh_charge1.0  hourly_soc_mwh_charge0.25  daily_method_ok
+    New York 0.1     32.23             49.06                     49.25                      49.25             True
+    New York 0.2     64.45            149.85                    150.00                     150.00             True
+    New York 0.3     96.68            276.68                    278.00                     278.00             True
+        Erie 0.1     39.16             75.41                     75.50                      75.50             True
+        Erie 0.2     78.32            409.32                    412.00                     412.00             True
+        Erie 0.3    117.49            786.89                    788.00                     788.00             True
+St. Lawrence 0.1      4.92              5.93                      5.94                       5.94             True
+St. Lawrence 0.2      9.84             11.86                     11.88                      11.88             True
+St. Lawrence 0.3     14.76             24.11                     24.12                      24.12             True

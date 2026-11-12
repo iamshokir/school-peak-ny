@@ -189,10 +189,13 @@ def build(blocks, out: Path, P) -> None:
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p.add_run().add_picture(str(FIG / b[1]), width=Inches(3.45))
             add("figure caption", b[2])
-        elif kind in ("table1", "table2"):
+        elif kind in ("table1", "table2", "table3"):
             if kind == "table1":
                 hdr, rows = P.table1_rows()
                 w = [0.64, 0.44, 0.36, 0.46, 0.42, 0.46, 0.42, 0.44]
+            elif kind == "table3":
+                hdr, rows = P.table3_rows()
+                w = [1.00, 0.80, 0.80, 0.90]
             else:
                 hdr, rows = P.table2_rows()
                 w = [0.40, 0.80, 0.58, 0.62, 0.64, 0.52]

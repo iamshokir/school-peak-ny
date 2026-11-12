@@ -1,0 +1,9 @@
+      county station  area_primary_ft2  area_secondary_ft2  area_total_m2 slope_w_ft2_k   t_bal_c        r2  winter_hours  missing_pct  occupied_hours_school_calendar  occupied_hours_all_weekdays  t_min_c          t_min_time  t_p1_c
+        Erie    KBUF          11961513            19351565        2909083   0.354/0.557 15.5/15.5 0.77/0.85         39936         0.04                            8232                         9512   -24.15 2016-02-14 07:00:00   -15.7
+St. Lawrence    KMSS            824908             1791015         243027   0.279/0.434 17.5/18.5 0.84/0.74         39936         0.10                            8229                         9503   -33.40 2022-01-22 03:00:00   -24.4
+    New York    KNYC           9853368            16297513        2429499   0.400/0.631 15.5/15.5 0.85/0.85         39936         0.73                            8175                         9442   -18.30 2016-02-14 07:00:00   -10.0
+station neighbor  common_winter_hours  mean_diff_c  mae_c  corr  p1_station_c  p1_neighbor_c  min_station_c  min_neighbor_c
+   KBUF     KIAG                39877         0.01   0.96 0.981         -15.7          -15.6         -24.15           -24.2
+   KMSS     KOGS                31411        -0.55   1.19 0.976         -23.9          -23.7         -33.40           -36.0
+   KNYC     KLGA                39641        -0.28   0.74 0.989         -10.0           -9.4         -18.30           -17.2
+input check consistent with run_all data_check.csv

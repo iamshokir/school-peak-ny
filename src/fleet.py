@@ -76,10 +76,25 @@ def winter_label(idx: pd.DatetimeIndex) -> np.ndarray:
 
 
 def heating_split(t_out: pd.Series, area_ft2: float, slope_w_ft2_k: float,
-                  t_bal: float, t_des: float, case: str) -> pd.DataFrame:
-    """Thermal demand, heat-pump electric and resistance electric, MW."""
+                  t_bal: float, t_des: float, case: str,
+                  load_factor: float = 1.0, dtbal: float = 0.0,
+                  cop_factor: float = 1.0, cap_factor: float = 1.0,
+                  boost8: float = 0.0) -> pd.DataFrame:
+    """Thermal demand, heat-pump electric and resistance electric, MW.
+
+    Sensitivity arguments (defaults = main case). The heat pump is always
+    sized on the base signature, so they act as errors in the load the
+    units were sized for: load_factor scales the true thermal demand;
+    dtbal shifts the true balance temperature (K); cop_factor and
+    cap_factor scale the COP and capacity curves; boost8 adds a morning
+    warm-up of boost8 x the 08:00 demand at 08:00 (stated assumption,
+    not a measurement)."""
     sig = {"slope_kw_per_k": slope_w_ft2_k * area_ft2 / 1e6, "t_bal_c": t_bal}
-    q = lr.shelter_heat(t_out, sig, 1.0)                     # MW thermal
+    true = {"slope_kw_per_k": sig["slope_kw_per_k"] * load_factor,
+            "t_bal_c": t_bal + dtbal}
+    q = lr.shelter_heat(t_out, true, 1.0)                    # MW thermal
+    if boost8:
+        q = q * np.where(t_out.index.hour == 8, 1.0 + boost8, 1.0)
     hp_th_nom = sig["slope_kw_per_k"] * max(0.0, t_bal - t_des)
     if case == "cc_full":       # derated capacity at T_des meets demand
         k_des = lr.cop_curve(pd.Series([t_des]), curve(case))["cap_frac"][0]
@@ -93,6 +108,7 @@ def heating_split(t_out: pd.Series, area_ft2: float, slope_w_ft2_k: float,
         t0 = min(lr.CC_CURVE)
         low = t_out.values < t0
         cop[low], cap[low] = lr.CC_CURVE[t0]
+    cop, cap = cop * cop_factor, cap * cap_factor
     hp_th = np.minimum(q.values, hp_th_nom * cap)
     with np.errstate(divide="ignore", invalid="ignore"):
         hp_el = np.where(hp_th > 0, hp_th / cop, 0.0)
@@ -117,3 +133,45 @@ def cap_storage(p: pd.Series, x: float, p_max: float | None = None) -> dict:
             "hours_over": int((over > 0).sum()),
             "days_over": int((daily > 0).sum()),
             "recharge_mw_16h": e_use / ETA_D / ETA_RT ** 0.5 / 16.0}
+
+
+def simulate_soc(p_occ: pd.Series, all_hours: pd.DatetimeIndex, x: float,
+                 nameplate_mwh: float, charge_frac: float = 1.0,
+                 p_max: float | None = None) -> dict:
+    """Hourly state of charge over every winter hour. Occupied hours:
+    discharge max(0, P_t - cap) up to the power rating xP_max. Other hours
+    (nights, weekends, holidays): recharge at up to charge_frac x power
+    rating. Starts full. Returns the energy the battery failed to deliver
+    (MWh) and the lowest state of charge."""
+    p_max = float(p_occ.max()) if p_max is None else p_max
+    cap, pw = (1.0 - x) * p_max, x * p_max
+    e_max = USABLE * nameplate_mwh
+    occ = pd.Series(p_occ, index=p_occ.index).reindex(all_hours)
+    soc, short, low = e_max, 0.0, e_max
+    for v in occ.values:
+        if not np.isnan(v):
+            need = min(max(0.0, v - cap), pw)
+            short += max(0.0, v - cap) - need
+            take = min(need / ETA_D, soc)
+            short += need - take * ETA_D
+            soc -= take
+        else:
+            soc = min(e_max, soc + charge_frac * pw * ETA_D)
+        low = min(low, soc)
+    return {"shortfall_mwh": short, "min_soc_frac": low / e_max}
+
+
+def min_nameplate(p_occ, all_hours, x, charge_frac=1.0, tol=0.01) -> float:
+    """Smallest nameplate (MWh) with zero shortfall, by bisection."""
+    lo, hi = 0.0, 1.0
+    while simulate_soc(p_occ, all_hours, x, hi, charge_frac)[
+            "shortfall_mwh"] > 1e-6:
+        hi *= 2
+    while hi - lo > tol * hi:
+        mid = (lo + hi) / 2
+        if simulate_soc(p_occ, all_hours, x, mid, charge_frac)[
+                "shortfall_mwh"] > 1e-6:
+            lo = mid
+        else:
+            hi = mid
+    return hi

@@ -8,14 +8,17 @@ GM 2027).
 ## Reproduce
 
 ```
-python -m pytest -q                 # 11 tests
 python scripts/run_all.py           # data check, peaks, storage (results/tables)
+python scripts/check_inputs.py      # input table + neighbor-station check
+python scripts/run_checks.py        # warm-up, uncertainty, hourly state-of-charge
+python -m pytest -q                 # 20 tests (unit, regression, hand check)
 python scripts/make_figures.py      # results/figures
 python paper/build_paper.py         # paper/draft.md and .docx (needs the PES PG4 template converted to template/pg4.docx; not committed)
 ```
 
 Weather input: NOAA ISD fixed-width files, stations 725280-14733 (KBUF),
-725053-94728 (KNYC), 726223-94725 (KMSS), 2014-2025, downloaded from
+725053-94728 (KNYC), 726223-94725 (KMSS), 2014-2025; neighbors for the
+check: 725030-14732 (KLGA), 725287-04724 (KIAG), 725186-99999 (KOGS, 2016-2025), downloaded from
 https://www.ncei.noaa.gov/pub/data/noaa/{year}/{station}-{year}.gz on
 2026-11-11 (data/SHA256SUMS_isd.txt). Raw files are not committed.
 

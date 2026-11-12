@@ -119,3 +119,29 @@ def test_calendar_closures():
     assert list(fleet.occupied_mask(idx)) == [False, False, True, False,
                                               False, True]
     assert fleet.occupied_mask(idx, calendar=False).all()
+
+
+def test_sensitivity_args_neutral_and_directional():
+    t = _t([-20.0, -5.0, 5.0])
+    base = fleet.heating_split(t, 1e6, 0.4, 15.5, -15.0, "cc")
+    same = fleet.heating_split(t, 1e6, 0.4, 15.5, -15.0, "cc", load_factor=1.0,
+                               dtbal=0.0, cop_factor=1.0, cap_factor=1.0,
+                               boost8=0.0)
+    assert np.allclose(base.p_el, same.p_el)
+    up = fleet.heating_split(t, 1e6, 0.4, 15.5, -15.0, "cc", load_factor=1.2)
+    assert (up.p_el > base.p_el).all()
+    wu = fleet.heating_split(t, 1e6, 0.4, 15.5, -15.0, "cc", boost8=0.3)
+    assert wu.q_th.iloc[0] == pytest.approx(1.3 * base.q_th.iloc[0])  # 08:00
+    assert wu.q_th.iloc[1] == pytest.approx(base.q_th.iloc[1])        # 09:00
+
+
+def test_simulate_soc_known_answer():
+    occ = pd.Series([10.0, 10.0], index=pd.to_datetime(
+        ["2022-01-03 08:00", "2022-01-03 09:00"]))
+    hours = pd.date_range("2022-01-03 08:00", periods=2, freq="h")
+    # cap 8 MW, power 2 MW: needs 4 MWh delivered over two hours
+    need = 4.0 / (fleet.ETA_D * fleet.USABLE)
+    ok = fleet.simulate_soc(occ, hours, 0.2, need * 1.0001)
+    bad = fleet.simulate_soc(occ, hours, 0.2, need * 0.5)
+    assert ok["shortfall_mwh"] == pytest.approx(0.0, abs=1e-9)
+    assert bad["shortfall_mwh"] == pytest.approx(2.0, rel=1e-6)

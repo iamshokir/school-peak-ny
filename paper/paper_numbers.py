@@ -100,6 +100,43 @@ def load() -> dict:
     N["slope_cold_lo"], N["slope_cold_hi"] = f(min(cold), 1), f(max(cold), 1)
     ratio = [c / m for c, m in zip(cold, mild)]
     N["slope_ratio_lo"], N["slope_ratio_hi"] = f(min(ratio)), f(max(ratio))
+    # item 1: neighbor-station check
+    nb = pd.read_csv(T / "neighbor_check.csv")
+    N["nb_p1_maxdiff"] = f((nb.p1_station_c - nb.p1_neighbor_c).abs().max())
+    N["nb_corr_min"] = f(nb["corr"].min(), 3)
+    N["nb_corr_max"] = f(nb["corr"].max(), 3)
+    N["nb_mae_max"] = f(nb.mae_c.max())
+    # items 3-5: warm-up, uncertainty, hourly SOC
+    wu = pd.read_csv(T / "warmup.csv")
+    un = pd.read_csv(T / "uncertainty.csv")
+    sc = pd.read_csv(T / "soc_check.csv")
+    for county, k in SHORT.items():
+        for b in (0.15, 0.30, 0.50):
+            r = wu[(wu.county == county) & (wu.case == "cc")
+                   & np.isclose(wu.boost8, b)].iloc[0]
+            N[f"{k}_wu{int(b * 100)}_pct"] = f(r.change_pct, 0)
+            N[f"{k}_wu{int(b * 100)}_mw"] = f(r.peak_mw, 0)
+            N[f"{k}_wu{int(b * 100)}_x20h"] = f(r.x20_duration_h, 2)
+            N[f"{k}_wu{int(b * 100)}_maxmed"] = f(r.max_over_median, 2)
+        for prm, v in [("load_factor", 0.8), ("load_factor", 1.2),
+                       ("load_factor", 0.9), ("load_factor", 1.1),
+                       ("dtbal", -2.0), ("dtbal", 2.0),
+                       ("cop_factor", 0.9), ("cop_factor", 1.1),
+                       ("cap_factor", 0.9), ("cap_factor", 1.1)]:
+            r = un[(un.county == county) & (un.param == prm)
+                   & np.isclose(un.value, v)].iloc[0]
+            N[f"{k}_{prm}_{v}"] = f(r.change_pct, 0)
+    wcc = wu[(wu.case == "cc") & (wu.boost8 > 0)]
+    N["wu_maxmed_lo"] = f(wcc.max_over_median.min(), 2)
+    N["wu_maxmed_hi"] = f(wcc.max_over_median.max(), 2)
+    N["wu_x20h_max"] = f(wcc.x20_duration_h.max(), 2)
+    rel = (sc["hourly_soc_mwh_charge1.0"] / sc.daily_method_mwh - 1) * 100
+    N["soc_maxdiff_pct"] = f(rel.max(), 1)
+    N["soc_charge_same"] = str(bool(np.allclose(
+        sc["hourly_soc_mwh_charge1.0"], sc["hourly_soc_mwh_charge0.25"])))
+    N["soc_daily_ok"] = str(bool(sc.daily_method_ok.all()))
+    # external comparison: Shonder et al. (2000), ORNL/TM-2000/80
+    N["ornl_wm2"] = f(255e3 / (69000 / FT2_PER_M2), 0)
     N["r2_lo"] = f(sig.occ_r2.min(), 2)
     N["r2_hi"] = f(sig.occ_r2.max(), 2)
     N["tbal_lo"] = f(sig.occ_t_bal_c.min())
