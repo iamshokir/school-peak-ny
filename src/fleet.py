@@ -1,0 +1,119 @@
+"""County school fleet: electric heating demand if all school heating is
+served by air-source heat pumps with resistance backup, and the battery
+needed to cap its peak.
+
+Method (stated):
+  1. Thermal demand of the county's ComStock school stock in occupied
+     hours: Q = A * s * max(0, T_bal - T_out) (vendor/load_remap.py,
+     signature from ComStock 2025 R3 upgrade 27, occupied hours).
+  2. Heat pumps sized to the thermal demand at the design temperature
+     T_des (1st percentile of winter hourly station temperature over the
+     study period - same rule as the companion sizing study);
+     capacity derates with temperature; the rest is resistance (COP 1).
+  3. Three heat-pump cases: 'cc' cold-climate curve (load_remap.CC_CURVE);
+     'neep' the same curve scaled so COP(-15 C) = 1.75 (NEEP v4 floor);
+     'lockout' the cc curve above -17.8 C and resistance only below
+     (ComStock standard HP RTU lockout at 0 F); 'cc_full' the cc curve
+     with nominal capacity raised so that the derated capacity at T_des
+     equals the design demand (in the other cases nominal = design
+     demand, the companion study's rule).
+  4. Peak capping: cap = (1 - x) * P_max, P_max the highest occupied-hour
+     demand over all winters. Battery power = x * P_max; usable energy =
+     the largest single-day sum of demand above the cap; nameplate =
+     usable / (eta_d * usable_fraction). Recharge assumed in the 16
+     unoccupied hours that follow.
+"""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "vendor"))
+import load_remap as lr  # noqa: E402
+
+NEEP_SCALE = 1.75 / 1.98
+LOCKOUT_C = -17.8
+WINTER = [1, 2, 3, 11, 12]
+ETA_RT = 0.85                  # NREL ATB 2024b round trip
+ETA_D = ETA_RT ** 0.5
+USABLE = 0.90                  # SOC 10-100 %
+
+
+def curve(case: str) -> dict:
+    if case == "neep":
+        return {t: (c * NEEP_SCALE, k) for t, (c, k) in lr.CC_CURVE.items()}
+    return lr.CC_CURVE
+
+
+def closed_days(idx: pd.DatetimeIndex) -> np.ndarray:
+    """Approximate New York school closures (stated, not district-exact):
+    US federal holidays, 24 Dec-1 Jan, and the Monday-Friday week of
+    Presidents' Day (mid-winter recess; e.g. NYC 16-20 Feb 2015)."""
+    from pandas.tseries.holiday import USFederalHolidayCalendar
+    d = idx.normalize()
+    hol = USFederalHolidayCalendar().holidays(d.min(), d.max())
+    xmas = ((idx.month == 12) & (idx.day >= 24)) | ((idx.month == 1)
+                                                    & (idx.day == 1))
+    pres = hol[(hol.month == 2) & (hol.dayofweek == 0)]
+    recess = np.zeros(len(idx), dtype=bool)
+    for p in pres:
+        recess |= (d >= p) & (d <= p + pd.Timedelta(days=4))
+    return np.asarray(d.isin(hol)) | np.asarray(xmas) | recess
+
+
+def occupied_mask(idx: pd.DatetimeIndex, calendar: bool = True) -> np.ndarray:
+    m = (np.isin(idx.month, WINTER) & (idx.dayofweek < 5)
+         & (idx.hour >= 8) & (idx.hour <= 15))
+    return m & ~closed_days(idx) if calendar else m
+
+
+def winter_label(idx: pd.DatetimeIndex) -> np.ndarray:
+    y = np.where(idx.month >= 11, idx.year, idx.year - 1)
+    return np.array([f"{a}/{str(a + 1)[2:]}" for a in y])
+
+
+def heating_split(t_out: pd.Series, area_ft2: float, slope_w_ft2_k: float,
+                  t_bal: float, t_des: float, case: str) -> pd.DataFrame:
+    """Thermal demand, heat-pump electric and resistance electric, MW."""
+    sig = {"slope_kw_per_k": slope_w_ft2_k * area_ft2 / 1e6, "t_bal_c": t_bal}
+    q = lr.shelter_heat(t_out, sig, 1.0)                     # MW thermal
+    hp_th_nom = sig["slope_kw_per_k"] * max(0.0, t_bal - t_des)
+    if case == "cc_full":       # derated capacity at T_des meets demand
+        k_des = lr.cop_curve(pd.Series([t_des]), curve(case))["cap_frac"][0]
+        hp_th_nom = hp_th_nom / k_des
+    cc = lr.cop_curve(t_out, curve(case))
+    cop, cap = cc["cop"].values.copy(), cc["cap_frac"].values.copy()
+    if case == "lockout":
+        off = t_out.values < LOCKOUT_C
+        cop[off], cap[off] = 0.0, 0.0
+    if case == "cc_hold":       # bound: coldest point held below -26.1 C
+        t0 = min(lr.CC_CURVE)
+        low = t_out.values < t0
+        cop[low], cap[low] = lr.CC_CURVE[t0]
+    hp_th = np.minimum(q.values, hp_th_nom * cap)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        hp_el = np.where(hp_th > 0, hp_th / cop, 0.0)
+    res_el = q.values - hp_th
+    return pd.DataFrame({"t_c": t_out.values, "q_th": q.values,
+                         "hp_el": hp_el, "res_el": res_el,
+                         "p_el": hp_el + res_el}, index=t_out.index)
+
+
+def cap_storage(p: pd.Series, x: float, p_max: float | None = None) -> dict:
+    """Battery to hold occupied-hour demand p (MW, hourly) at (1-x)*p_max."""
+    p_max = float(p.max()) if p_max is None else p_max
+    cap = (1.0 - x) * p_max
+    over = (p - cap).clip(lower=0.0)
+    daily = over.groupby(over.index.date).sum()              # MWh
+    e_use = float(daily.max())
+    return {"x": x, "cap_mw": cap, "power_mw": x * p_max,
+            "usable_mwh": e_use,
+            "nameplate_mwh": e_use / (ETA_D * USABLE),
+            "duration_h": e_use / (ETA_D * USABLE) / (x * p_max) if x > 0
+            else np.nan,
+            "hours_over": int((over > 0).sum()),
+            "days_over": int((daily > 0).sum()),
+            "recharge_mw_16h": e_use / ETA_D / ETA_RT ** 0.5 / 16.0}

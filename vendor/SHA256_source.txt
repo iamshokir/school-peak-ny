@@ -1,0 +1,3 @@
+3584c14eddc38ef84ed2762db80aed1b752f9dffc5aebb73904ccdf4283cbd21  ../school-shelter-ny/src/load_remap.py
+dec14590998a71a4805e693f48880c74c10acbf5ef247d7ba3c7921ce82b8f8b  ../school-shelter-ny/results/data_checks/comstock_heating_signature.csv
+dec14590998a71a4805e693f48880c74c10acbf5ef247d7ba3c7921ce82b8f8b  vendor/comstock_heating_signature.csv
