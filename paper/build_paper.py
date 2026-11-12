@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT / "paper"))
 from paper_numbers import load  # noqa: E402
 
 N = load()
-M = "−"
+M = "-"
 
 TITLE = ("Cold-Morning Peaks from Electrified School Heating in New York "
          "State: Heat-Pump Choice, Weather-Year Risk and Short-Duration "
@@ -94,7 +94,7 @@ def body() -> list:
       f"balance temperatures of {N['tbal_lo']}{M}{N['tbal_hi']} °C and "
       f"R² of {N['r2_lo']}{M}{N['r2_hi']}. The fleet thermal demand in "
       "hour t is".replace("{M}", M))
-    eq("Q_{t} = Σ_{b} A_{b} s_{b} max(0, T_{bal,b} − T_{t})", 1)
+    eq("Q_{t} = Σ_{b} A_{b} s_{b} max(0, T_{bal,b} - T_{t})", 1)
     p("where A_{b} is the floor area, s_{b} the slope and T_{bal,b} the "
       "balance temperature of school type b, and T_{t} the outdoor "
       "temperature.")
@@ -107,7 +107,7 @@ def body() -> list:
       f"{N['ny_miss']}%, {N['er_miss']}% and {N['sl_miss']}% of occupied "
       "hours remain missing and are dropped. As a check, the Central Park "
       f"minimum of the record, {N['ny_tmin']} °C on 14 February 2016, "
-      "matches the −1 °F reported for that morning. Occupied hours exclude U.S. federal holidays, "
+      "matches the -1 °F reported for that morning. Occupied hours exclude U.S. federal holidays, "
       "24 December{M}1 January and the week of Presidents' Day, an "
       "approximation of New York school calendars (for example, New York "
       "City schools were closed 16{M}20 February 2015); a run with every "
@@ -121,10 +121,10 @@ def body() -> list:
       "electric-resistance backup; the result is the added electric demand, "
       "not the net change in the school's total load. The heat-pump "
       "nominal thermal capacity is")
-    eq("H = Σ_{b} A_{b} s_{b} max(0, T_{bal,b} − T_{des}) / k(T_{des})^{δ}", 2)
+    eq("H = Σ_{b} A_{b} s_{b} max(0, T_{bal,b} - T_{des}) / k(T_{des})^{δ}", 2)
     p("with k(T) the capacity fraction at temperature T. With heat-pump "
       "output G_{t} = min(Q_{t}, k(T_{t})H), the electric demand is")
-    eq("P_{t} = G_{t}/COP(T_{t}) + (Q_{t} − G_{t})",
+    eq("P_{t} = G_{t}/COP(T_{t}) + (Q_{t} - G_{t})",
        3)
     p("Five cases are compared. CC (main): a cold-climate curve with COP "
       f"3.37, 2.33, 1.98 and 1.49 at 8.3, {M}8.3, {M}15 and {M}26.1 °C "
@@ -132,7 +132,7 @@ def body() -> list:
       "capacity equal to the design-temperature load (δ = 0, the rule "
       "of [10]) and resistance only below the coldest rated point. "
       "CC-full: as CC with δ = 1, so the derated capacity meets the "
-      "design load. NEEP: CC with COP scaled to 1.75 at −15 °C, "
+      "design load. NEEP: CC with COP scaled to 1.75 at -15 °C, "
       "the qualifying floor of the NEEP cold-climate specification [7]. "
       f"Lockout: CC with the compressor off below {M}17.8 °C (0 °F), "
       "the behavior of the standard-performance heat-pump rooftop unit "
@@ -141,9 +141,9 @@ def body() -> list:
       "running in deep cold.".replace("{M}", M))
     h2("Peak capping with storage")
     p("Let P_{max} be the highest occupied-hour demand over all winters. A "
-      "battery of power xP_{max} holds demand at (1 − x)P_{max} if its "
+      "battery of power xP_{max} holds demand at (1 - x)P_{max} if its "
       "usable energy covers the worst school day:")
-    eq("E = max_{d} Σ_{t∈d} max(0, P_{t} − (1 − x)P_{max})", 4)
+    eq("E = max_{d} Σ_{t∈d} max(0, P_{t} - (1 - x)P_{max})", 4)
     p("Nameplate energy is E/(η_{d}u), with discharge efficiency "
       "η_{d} = 0.85^{0.5} from an 85% round trip [9] and usable fraction "
       "u = 0.9; duration is nameplate energy over power. Discharge assumes "
@@ -155,7 +155,7 @@ def body() -> list:
     h1("Results")
     h2("Why the peak is steep")
     p("Fig. 1 shows the added demand per square foot as a function of "
-      "outdoor temperature. Between 0 and −5 °C the heat pumps "
+      "outdoor temperature. Between 0 and -5 °C the heat pumps "
       "carry the load at a COP near 2.5 or above and each degree adds "
       f"{N['slope_mild_lo']}{M}{N['slope_mild_hi']} W/m². Around the "
       "design temperature the derated capacity no longer covers the load "
@@ -171,7 +171,7 @@ def body() -> list:
               "Added electric demand of the county school stock per square "
               "foot versus outdoor temperature for the five heat-pump cases. "
               "Vertical line: design temperature; shaded: colder than any "
-              "occupied hour in 2014/15–2024/25."))
+              "occupied hour in 2014/15-2024/25."))
     h2("Peak demand and heat-pump choice")
     p("Table I lists the peaks. With the main CC case the school stock adds "
       f"{N['ny_cc_mw']} MW in New York County, {N['er_cc_mw']} MW in Erie "
@@ -283,7 +283,7 @@ REFS = [
     "Rev., vol. 44, Art. no. 100985, 2022, doi: 10.1016/j.esr.2022.100985.",
     "M. Waite and V. Modi, “Electricity load implications of space "
     "heating decarbonization pathways,” Joule, vol. 4, no. 2, "
-    "pp. 376–394, 2020, doi: 10.1016/j.joule.2019.11.011.",
+    "pp. 376-394, 2020, doi: 10.1016/j.joule.2019.11.011.",
     "P. R. White, J. D. Rhodes, E. J. H. Wilson, and M. E. Webber, "
     "“Quantifying the impact of residential space heating "
     "electrification on the Texas electric grid,” Appl. Energy, "
@@ -354,8 +354,8 @@ def table2_rows():
 
 
 def to_markdown(blocks) -> str:
-    out = [f"# {TITLE}", "", f"{AUTHOR} — {AFFIL} — {EMAIL}", "",
-           f"**Abstract—**{ABSTRACT}", "", f"**Index Terms—**{INDEX}",
+    out = [f"# {TITLE}", "", f"{AUTHOR} - {AFFIL} - {EMAIL}", "",
+           f"**Abstract-**{ABSTRACT}", "", f"**Index Terms-**{INDEX}",
            ""]
     sec = fig = tab = 0
     roman = ["I", "II", "III", "IV", "V", "VI"]

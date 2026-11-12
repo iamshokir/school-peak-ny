@@ -23,12 +23,12 @@ LS = {"cc": "-", "cc_full": "--", "neep": "-.", "lockout": ":",
 NAME = {"cc": "CC: nominal capacity = design load",
         "cc_full": "CC-full: sized for design temperature",
         "neep": "NEEP: COP floor",
-        "lockout": "Lockout below \u221217.8 \u00b0C",
-        "cc_hold": "CC-hold: kept on below \u221226.1 \u00b0C"}
+        "lockout": "Lockout below -17.8 \u00b0C",
+        "cc_hold": "CC-hold: kept on below -26.1 \u00b0C"}
 COUNTY_COL = {"Erie": "#2a78d6", "St. Lawrence": "#eb6834",
               "New York": "#1baf7a"}
 COUNTY_MK = {"Erie": "o", "St. Lawrence": "s", "New York": "^"}
-plt.rcParams.update({"font.size": 7, "font.family": "serif",
+plt.rcParams.update({"axes.unicode_minus": False, "font.size": 7, "font.family": "serif",
                      "axes.spines.top": False, "axes.spines.right": False,
                      "axes.linewidth": 0.6, "xtick.major.width": 0.6,
                      "ytick.major.width": 0.6, "axes.grid": True,

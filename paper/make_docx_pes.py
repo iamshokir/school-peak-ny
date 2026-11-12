@@ -142,10 +142,10 @@ def build(blocks, out: Path, P) -> None:
     ab, it = paras[17], paras[18]
     _clear(ab)
     ab.add_run("Abstract").italic = True
-    ab.add_run("—" + P.ABSTRACT)
+    ab.add_run("--" + P.ABSTRACT)
     _clear(it)
     it.add_run("Index Terms").italic = True
-    it.add_run("—" + P.INDEX)
+    it.add_run("--" + P.INDEX)
 
     # remove the template's sample body up to the section break (para 130)
     anchor = paras[130]

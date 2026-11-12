@@ -16,7 +16,7 @@ SHORT = {"New York": "ny", "Erie": "er", "St. Lawrence": "sl"}
 
 def f(x, d=1):
     s = f"{x:.{d}f}"
-    return s.replace("-", "−")
+    return s
 
 
 def load() -> dict:
