@@ -10,11 +10,11 @@ Cold-Morning Peaks from Electrified School Heating in New York State: Heat-Pump 
 **Author**
 Shokirdzhon Ismoilov — OFTO Energy Foundation, Brooklyn, NY, USA — shokir@oftoenergy.org — ORCID 0009-0008-6551-6688 — IEEE member (номер вводите сами)
 
-**Abstract** (204 слова, plain text)
-Electrifying space heating is moving New York toward a winter-peaking grid, yet the share of that peak that comes from individual building types is rarely resolved. This paper estimates the electric demand that the school building stock of three New York counties (New York, Erie and St. Lawrence) would add on cold school mornings if all school heating were served by air-source heat pumps with resistance backup. A temperature-dependent heating signature of the ComStock school stock is driven by 11 winters (2014/15-2024/25) of hourly NOAA station temperature under five heat-pump cases. The added peak is 322, 392 and 49 MW (12.3-18.8 W/ft2), 5.2-7.1 times the mean occupied-hour demand and 31-59% above the peak of a median winter. Heat-pump choice moves the Erie peak from 330 MW (capacity sized for the design temperature) to 521 MW (compressor lockout at -17.8 C); below about -26 C every rated case falls back to resistance. A battery that caps the peak by 10% needs 1.2-1.9 h of storage and is called on at most 7 school days in 11 winters, but a 20% cap needs 5.2 h in Erie. School electrification plans should use multi-year weather, specify cold-climate heat-pump performance and treat short-duration storage as a shallow peak cap.
+**Abstract** (150 слов — лимит шаблона PES; plain text)
+Heating electrification is moving New York toward a winter-peaking grid, but the share of individual building types is rarely resolved. This paper estimates the demand that the school stock of three New York counties would add on cold school mornings if all school heating used air-source heat pumps with resistance backup. A ComStock heating signature is driven by 11 winters of hourly NOAA temperature under five heat-pump cases. The added peak is 322, 392 and 49 MW (133-202 W/m2) in New York, Erie and St. Lawrence counties, 31-59% above the peak of a median winter. Heat-pump sizing and compressor lockout move the Erie peak between 330 and 521 MW. A battery that caps the peak by 10% needs 1.2-1.9 h and is used on at most 7 school days in 11 winters; a 20% cap needs 5.2 h in Erie. Planning should use multi-year weather and specify cold-climate heat-pump performance.
 
 **Keywords / Index Terms**
-Building electrification; heat pumps; peak demand; energy storage; schools; winter reliability
+Building electrification; energy storage; heat pumps; peak demand; schools  (шаблон: не более 5, по алфавиту)
 
 **Тема / комитет** (выбрать в выпадающем списке портала; точный список я не видел):
 1. рекомендую: тема про планирование / нагрузку / электрификацию (Power System Planning, Load Modeling или Distribution/Customer-side, если есть);
@@ -27,10 +27,10 @@ Building electrification; heat pumps; peak demand; energy storage; schools; wint
 ## 2. Что проверить перед вашим «да» (решаете вы)
 
 - [ ] **Прочитать весь текст**, особенно Discussion и Conclusion (формулировки выводов — ваши).
-- [ ] **Шаблон.** Официальный PES-шаблон .doc из облака скачать не удалось (сайт заблокирован для сервера). Я сверстал по формату IEEE-конференций: Letter, 2 колонки, Times. Скачайте https://ieee-pes.org/wp-content/uploads/2023/01/pg4-sample-word-template-conference-paper.doc и пришлите — переложу текст в него. Либо подавайте PDF как есть, если портал не проверяет шаблон.
-- [ ] **≤ 5 страниц**: сейчас 4 страницы, в PDF через LibreOffice. В Word откройте и проверьте.
-- [ ] **Ссылки [10], [11]** («submitted for publication»): названия журналов не указаны. Альтернатива: «under review». Решаете вы.
-- [ ] **Ссылка на код/архив** ([ARCHIVE LINK] в Data availability). Варианты: (а) создаёте приватный репозиторий `iamshokir/school-peak-ny`, я пушу; открываете после принятия; (б) Zenodo с резервом DOI; (в) убрать строку, оставить «available from the author on request».
+- [x] **Шаблон PES (PG4)** — статья собрана в вашем файле шаблона, стилями шаблона. Учтены его правила: аннотация ≤ 150 слов, ≤ 5 ключевых слов по алфавиту, единицы SI (W/m², m²), «Fig. 1», минус длинным знаком, неопубликованные работы как «unpublished».
+- [ ] **≤ 5 страниц**: сейчас 3,3 страницы (PDF через LibreOffice). Откройте .docx в Word и проверьте вёрстку; подавать PDF, сохранённый из Word.
+- [x] **Ссылки [10], [11]** — по правилу шаблона PES: «unpublished».
+- [ ] **Репозиторий** https://github.com/iamshokir/school-peak-ny указан в Data availability. Сейчас он **приватный**: рецензенты по ссылке ничего не увидят. Варианты: (а) открыть сейчас; (б) оставить приватным и открыть после принятия (ссылка в статье пока не работает для читателя); (в) заменить строку на «available from the author on request». Решаете вы.
 - [ ] **AI-раскрытие** в Acknowledgment: подтвердить формулировку, убрать [AUTHOR TO CONFIRM WORDING]. Требование IEEE: https://open.ieee.org/author-guidelines-for-artificial-intelligence-ai-generated-text/
 - [ ] **Номинация на Best Conference Paper / Paper Forum** — по CFP назначается программой, выбора у автора нет.
 - [ ] **Регистрация и доклад.** Если статью примут, нужно зарегистрироваться (один автор платит взнос) и выступить в Сан-Франциско в июле 2027. Без доклада статья не попадёт в IEEE Xplore.

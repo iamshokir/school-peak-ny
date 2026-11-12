@@ -15,15 +15,16 @@ sys.path.insert(0, str(ROOT / "src"))
 import fleet  # noqa: E402
 
 FIG = ROOT / "results" / "figures"
+FT2_PER_M2 = 10.7639
 COL = {"cc": "#2a78d6", "cc_full": "#1baf7a", "neep": "#eda100",
        "lockout": "#eb6834", "cc_hold": "#2a78d6"}
 LS = {"cc": "-", "cc_full": "--", "neep": "-.", "lockout": ":",
       "cc_hold": (0, (1, 1))}
-NAME = {"cc": "Cold-climate HP, nominal = design load",
-        "cc_full": "Cold-climate HP, sized for design temp.",
-        "neep": "NEEP-floor COP",
-        "lockout": "Lockout below -17.8 °C",
-        "cc_hold": "HP kept on below -26 °C"}
+NAME = {"cc": "CC: nominal capacity = design load",
+        "cc_full": "CC-full: sized for design temperature",
+        "neep": "NEEP: COP floor",
+        "lockout": "Lockout below \u221217.8 \u00b0C",
+        "cc_hold": "CC-hold: kept on below \u221226.1 \u00b0C"}
 COUNTY_COL = {"Erie": "#2a78d6", "St. Lawrence": "#eb6834",
               "New York": "#1baf7a"}
 COUNTY_MK = {"Erie": "o", "St. Lawrence": "s", "New York": "^"}
@@ -44,7 +45,7 @@ def fig1(sig, t_des, temps):
             p = sum(fleet.heating_split(tg, r.floor_area_ft2,
                                         r.occ_slope_w_ft2_k, r.occ_t_bal_c,
                                         t_des[county], case).p_el.values
-                    for _, r in rows.iterrows()) / area * 1e6
+                    for _, r in rows.iterrows()) / area * 1e6 * FT2_PER_M2
             if case == "cc_hold":
                 m = tg.values <= -26.1
                 ax.plot(tg[m], p[m], color=COL[case], ls=LS[case], lw=1.0,
@@ -57,14 +58,14 @@ def fig1(sig, t_des, temps):
         tmin = float(w[fleet.occupied_mask(w.index)].min())
         ax.axvline(t_des[county], color="#6b6b66", lw=0.6)
         ax.axvspan(-34, tmin, color="#f0efec", lw=0)
-        ax.text(t_des[county] + 0.8, 25.2, "design", rotation=90,
+        ax.text(t_des[county] + 0.8, 272, "design", rotation=90,
                 va="top", fontsize=6, color="#4a4a46")
         ax.set_title(county, fontsize=7)
         ax.set_xlim(-34, 16)
         ax.set_xticks([-30, -15, 0, 15])
-    axes[0].set_ylabel("Added electric demand (W/ft²)")
+    axes[0].set_ylabel("Added electric demand (W/m²)")
     axes[1].set_xlabel("Outdoor temperature (°C)")
-    axes[0].set_ylim(0, 26)
+    axes[0].set_ylim(0, 280)
     h, l = axes[2].get_legend_handles_labels()
     fig.legend(h, l, loc="lower center", ncol=2, fontsize=5.6, frameon=False,
                handlelength=2.6, bbox_to_anchor=(0.5, -0.01))
@@ -82,7 +83,7 @@ def fig2(pk):
     off = {"New York": -0.22, "Erie": 0.0, "St. Lawrence": 0.22}
     for county in ["New York", "Erie", "St. Lawrence"]:
         r = main[main.county == county].iloc[0]
-        area = r.area_mft2
+        area = r.area_mft2 / FT2_PER_M2       # million m2
         w = eval(r.winter_peaks_mw)          # dict written by run_all.py
         wl = eval(lo[lo.county == county].iloc[0].winter_peaks_mw)
         wh = eval(hi[hi.county == county].iloc[0].winter_peaks_mw)
@@ -97,8 +98,8 @@ def fig2(pk):
     ax.set_xticks(np.arange(len(keys)))
     ax.set_xticklabels([k[2:] for k in keys], rotation=45, fontsize=6)
     ax.set_xlabel("Winter")
-    ax.set_ylabel("Winter peak (W/ft²)")
-    ax.set_ylim(0, 20)
+    ax.set_ylabel("Winter peak (W/m²)")
+    ax.set_ylim(0, 215)
     ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), fontsize=6,
               frameon=False, ncol=3, handletextpad=0.2, columnspacing=0.8)
     fig.tight_layout()

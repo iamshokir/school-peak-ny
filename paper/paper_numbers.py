@@ -10,6 +10,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 T = ROOT / "results" / "tables"
+FT2_PER_M2 = 10.7639          # 1 m2 = 10.7639 ft2 (W/ft2 -> W/m2)
 SHORT = {"New York": "ny", "Erie": "er", "St. Lawrence": "sl"}
 
 
@@ -34,12 +35,14 @@ def load() -> dict:
             r = sch[(sch.county == county) & (sch.case == case)].iloc[0]
             N[f"{k}_{case}_mw"] = f(r.peak_mw, 0)
             N[f"{k}_{case}_wft2"] = f(r.peak_w_ft2)
+            N[f"{k}_{case}_wm2"] = f(r.peak_w_ft2 * FT2_PER_M2, 0)
             N[f"{k}_{case}_res"] = f(100 * r.resistance_share_at_peak, 0)
             N[f"{k}_{case}_maxmed"] = f(r.peak_mw / r.median_winter_peak_mw, 2)
             N[f"{k}_{case}_maxmin"] = f(r.peak_mw / r.min_winter_peak_mw, 2)
             N[f"{k}_{case}_pm"] = f(r.peak_over_mean)
             if case == "cc":
                 N[f"{k}_area"] = f(r.area_mft2)
+                N[f"{k}_area_mm2"] = f(r.area_mft2 / FT2_PER_M2, 2)
                 N[f"{k}_tpk"] = f(r.t_at_peak_c)
                 N[f"{k}_pkdate"] = pd.Timestamp(r.peak_time).strftime(
                     "%-d %B %Y")
@@ -47,6 +50,10 @@ def load() -> dict:
                 w = ast.literal_eval(r.winter_peaks_mw)
                 N[f"{k}_wmin_wft2"] = f(min(w.values()) / r.area_mft2)
                 N[f"{k}_wmax_wft2"] = f(max(w.values()) / r.area_mft2)
+                N[f"{k}_wmin_wm2"] = f(min(w.values()) / r.area_mft2
+                                       * FT2_PER_M2, 0)
+                N[f"{k}_wmax_wm2"] = f(max(w.values()) / r.area_mft2
+                                       * FT2_PER_M2, 0)
                 N[f"{k}_hours"] = f"{int(r.occupied_hours):,}"
         aw = pk[(pk.calendar == "all_weekdays") & (pk.county == county)
                 & (pk.case == "cc")].iloc[0]
@@ -66,6 +73,7 @@ def load() -> dict:
                 N[p + "_days"] = str(int(r.days_over))
                 N[p + "_hrs"] = str(int(r.hours_over))
                 N[p + "_kwhk"] = f(r.nameplate_kwh_per_kft2, 1)
+                N[p + "_whm2"] = f(r.nameplate_kwh_per_kft2 * FT2_PER_M2, 0)
                 N[p + "_rech"] = f(100 * r.recharge_mw_16h / r.cap_mw, 1)
     # marginal demand per degree (CC), W/ft2/K: mild (0 to -5 C) and
     # around the design temperature (T_des +5 to -5 C)
@@ -86,8 +94,10 @@ def load() -> dict:
                        for _, r in rows.iterrows()) / area * 1e6
         mild.append((P(-5) - P(0)) / 5)
         cold.append((P(td - 5) - P(td + 5)) / 10)
-    N["slope_mild_lo"], N["slope_mild_hi"] = f(min(mild), 2), f(max(mild), 2)
-    N["slope_cold_lo"], N["slope_cold_hi"] = f(min(cold), 2), f(max(cold), 2)
+    mild = [m * FT2_PER_M2 for m in mild]
+    cold = [c * FT2_PER_M2 for c in cold]
+    N["slope_mild_lo"], N["slope_mild_hi"] = f(min(mild), 1), f(max(mild), 1)
+    N["slope_cold_lo"], N["slope_cold_hi"] = f(min(cold), 1), f(max(cold), 1)
     ratio = [c / m for c, m in zip(cold, mild)]
     N["slope_ratio_lo"], N["slope_ratio_hi"] = f(min(ratio)), f(max(ratio))
     N["r2_lo"] = f(sig.occ_r2.min(), 2)

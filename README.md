@@ -11,7 +11,7 @@ GM 2027).
 python -m pytest -q                 # 11 tests
 python scripts/run_all.py           # data check, peaks, storage (results/tables)
 python scripts/make_figures.py      # results/figures
-python paper/build_paper.py         # paper/draft.md and .docx; all numbers from results/
+python paper/build_paper.py         # paper/draft.md and .docx (needs the PES PG4 template converted to template/pg4.docx; not committed)
 ```
 
 Weather input: NOAA ISD fixed-width files, stations 725280-14733 (KBUF),

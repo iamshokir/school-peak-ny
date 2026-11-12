@@ -3,3 +3,5 @@ results/series.pkl
 __pycache__/
 *.pyc
 paper/pg-*.png
+template/
+*.zip
