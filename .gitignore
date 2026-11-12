@@ -5,3 +5,7 @@ __pycache__/
 paper/pg-*.png
 template/
 *.zip
+paper/*.docx
+paper/*.pdf
+paper/draft.md
+paper/submission_pack_RU.md
