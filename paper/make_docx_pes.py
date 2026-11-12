@@ -223,4 +223,9 @@ def build(blocks, out: Path, P) -> None:
     add("Heading 5", "References")
     for r in P.REFS:
         add("references", r)
+    cp = d.core_properties
+    cp.title, cp.author = P.TITLE, P.AUTHOR
+    cp.subject, cp.keywords = "IEEE PES GM 2027", P.INDEX
+    cp.comments = ""
+    cp.last_modified_by = P.AUTHOR
     d.save(out)
