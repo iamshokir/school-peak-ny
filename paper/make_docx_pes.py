@@ -229,3 +229,20 @@ def build(blocks, out: Path, P) -> None:
     cp.comments = ""
     cp.last_modified_by = P.AUTHOR
     d.save(out)
+    _dedupe_zip(out)
+
+
+def _dedupe_zip(path: Path) -> None:
+    """The LibreOffice-converted template carries docProps/core.xml twice;
+    keep the last copy (the one python-docx wrote) so readers see the
+    paper's title and author, not the template's."""
+    import zipfile
+    with zipfile.ZipFile(path) as z:
+        items = {}
+        for info in z.infolist():
+            items[info.filename] = (info, z.read(info))
+    tmp = path.with_suffix(".tmp")
+    with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as z:
+        for name, (info, data) in items.items():
+            z.writestr(info, data)
+    tmp.replace(path)
